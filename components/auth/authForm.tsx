@@ -1,34 +1,38 @@
-import tw from "twin.macro";
-import { FormEvent, MouseEventHandler, useCallback, useState } from "react";
-import useForm from "../../hooks/custom/useForm";
-import Typography from "../typography";
-import { Call, CloseCircle, Message2 } from "iconsax-react";
-import Link from "next/link";
-import FormInput from "../FormInput";
-import SubmitButton from "../buttons/SubmitButton";
-import { useRouter } from "next/router";
-import useSignUp from "../../hooks/mutations/auth/useSignUp";
-import useLogin from "../../hooks/mutations/auth/useLogin";
-import toast from "react-hot-toast";
-import ActionButton from "../buttons/ActionButton";
-import useSendResetPasswordMail from "../../hooks/mutations/auth/useSendResetEmail";
-import { FirebaseError } from "firebase/app";
-import handleError from "../../utils/handleError";
+// Importing necessary libraries and hooks
+import tw from "twin.macro"; // Library for using Tailwind CSS with styled-components
+import { FormEvent, MouseEventHandler, useCallback, useState } from "react"; // React hooks and types
+import useForm from "../../hooks/custom/useForm"; // Custom hook for form handling
+import Typography from "../typography"; // Typography component for consistent text styles
+import { Call, CloseCircle, Message2 } from "iconsax-react"; // Icon components
+import Link from "next/link"; // Link component from Next.js for client-side navigation
+import FormInput from "../FormInput"; // Custom input component
+import SubmitButton from "../buttons/SubmitButton"; // Custom submit button
+import { useRouter } from "next/router"; // Next.js hook for routing
+import useSignUp from "../../hooks/mutations/auth/useSignUp"; // Custom hook for sign-up mutation
+import useLogin from "../../hooks/mutations/auth/useLogin"; // Custom hook for login mutation
+import toast from "react-hot-toast"; // Library for displaying notifications
+import ActionButton from "../buttons/ActionButton"; // Custom action button
+import useSendResetPasswordMail from "../../hooks/mutations/auth/useSendResetEmail"; // Custom hook for sending reset password email
+import { FirebaseError } from "firebase/app"; // Firebase error handling
+import handleError from "../../utils/handleError"; // Utility function for handling errors
 
+// Initial state for the form
 const initialState = {
   name: "",
   email: "",
   password: "",
 };
 
+// Type definition for the AuthForm props
 type AuthFormProps = {
-  onClose?: MouseEventHandler;
-  disableClose?: boolean;
-  isModal?: boolean;
-  onSuccess?: VoidFunction;
-  headingText?: string;
+  onClose?: MouseEventHandler; // Optional mouse event handler for closing the form
+  disableClose?: boolean; // Optional boolean to disable close functionality
+  isModal?: boolean; // Optional boolean to indicate if the form is a modal
+  onSuccess?: VoidFunction; // Optional callback function for successful form submission
+  headingText?: string; // Optional custom heading text
 };
 
+// AuthForm component definition
 export default function AuthForm({
   isModal,
   disableClose,
@@ -36,66 +40,61 @@ export default function AuthForm({
   onClose,
   headingText,
 }: AuthFormProps) {
-  const router = useRouter();
-  const { updateForm, formData } = useForm({
-    initialState,
-  });
-  const signUp = useSignUp(
-    formData.name,
-    formData.email,
-    formData.password,
-    {}
-  );
+  const router = useRouter(); // Next.js router hook
+  const { updateForm, formData } = useForm({ initialState }); // Custom form hook for handling form data
+  const signUp = useSignUp(formData.name, formData.email, formData.password, {}); // Sign-up mutation hook
 
   const login = useLogin({
     email: formData.email,
     password: formData.password,
-  });
+  }); // Login mutation hook
 
-  const isLoading = login.isLoading || signUp.isLoading;
-  const [isSigningUp, setIsSigningUp] = useState(false);
-  const [forgotPassword, setForgotPassword] = useState(false);
+  const isLoading = login.isLoading || signUp.isLoading; // Boolean flag for loading state
+  const [isSigningUp, setIsSigningUp] = useState(false); // State for toggling between sign-up and login
+  const [forgotPassword, setForgotPassword] = useState(false); // State for toggling forgot password mode
 
-  const sendResetPasswordMailMutation = useSendResetPasswordMail();
+  const sendResetPasswordMailMutation = useSendResetPasswordMail(); // Mutation hook for sending reset password email
 
+  // Callback function for form submission
   const onSubmit = useCallback(
     (e: FormEvent) => {
-      e.preventDefault();
+      e.preventDefault(); // Prevent default form submission
 
       if (forgotPassword) {
+        // Handle forgot password case
         sendResetPasswordMailMutation.mutate(formData.email, {
           onSuccess: () => {
-            toast.success("Password reset email sent !");
-            onSuccess && onSuccess();
+            toast.success("Password reset email sent !"); // Display success message
+            onSuccess && onSuccess(); // Call onSuccess callback if provided
           },
-          onError: handleError,
+          onError: handleError, // Handle error using utility function
         });
       } else if (isSigningUp) {
-        // sign them up and route them back to the home page
+        // Handle sign-up case
         signUp.mutate(undefined, {
           onSuccess: () => {
-            toast.success(`Welcome ${formData.name}!`);
-            router.push("/");
-            onSuccess && onSuccess();
+            toast.success(`Welcome ${formData.name}!`); // Display welcome message
+            router.push("/"); // Redirect to home page
+            onSuccess && onSuccess(); // Call onSuccess callback if provided
           },
           onError: (e: any) => {
-            toast.error(`An error occurred - ${e}`);
+            toast.error(`An error occurred - ${e}`); // Display error message
           },
         });
       } else {
-        // log them in
+        // Handle login case
         login.mutate(undefined, {
           onSuccess: () => {
-            toast.success(`Welcome back!`);
-            onSuccess && onSuccess();
+            toast.success(`Welcome back!`); // Display welcome message
+            onSuccess && onSuccess(); // Call onSuccess callback if provided
           },
           onError: (error: any) => {
+            // Error handling for login
             let errorMessage = "An error occurred";
 
             switch (error.code) {
               case "auth/invalid-credential":
-                errorMessage =
-                  "Invalid credentials. Please check your email and password.";
+                errorMessage = "Invalid credentials. Please check your email and password.";
                 break;
               case "auth/user-not-found":
                 errorMessage = "User not found. Please check your email.";
@@ -107,14 +106,13 @@ export default function AuthForm({
                 errorMessage = "Too many attempts. Please try again later.";
                 break;
               case "auth/user-disabled":
-                errorMessage =
-                  "Your account has been disabled. Please contact support.";
+                errorMessage = "Your account has been disabled. Please contact support.";
                 break;
               default:
                 errorMessage = `An error occurred - ${error.message}`;
             }
 
-            toast.error(errorMessage);
+            toast.error(errorMessage); // Display error message
           },
         });
       }
@@ -132,6 +130,7 @@ export default function AuthForm({
     ]
   );
 
+  // Determine the heading text based on the current form state
   const heading = forgotPassword
     ? "Recover Pasword"
     : isSigningUp
@@ -139,8 +138,10 @@ export default function AuthForm({
     : "Welcome Back";
 
   return (
-    <section tw=" flex flex-col px-12 py-12 overflow-hidden rounded-2xl lg:(flex-row)">
-      <div tw="px-[4%] py-12 w-full ">
+    // Main container for the form
+    <section tw="flex flex-col px-12 py-12 overflow-hidden rounded-2xl lg:(flex-row)">
+      {/* Form container */}
+      <div tw="px-[4%] py-12 w-full">
         <Typography.H4 tw="mb-5">{headingText ?? heading}</Typography.H4>
         {forgotPassword && (
           <Typography.P tw="mb-5">
@@ -148,8 +149,10 @@ export default function AuthForm({
           </Typography.P>
         )}
 
+        {/* Form element */}
         <form onSubmit={onSubmit}>
           {isSigningUp && !forgotPassword && (
+            // Name input for sign-up
             <FormInput
               tw="mb-5 w-full text-gray-800 font-light"
               id="name"
@@ -162,6 +165,7 @@ export default function AuthForm({
               required
             />
           )}
+          {/* Email input */}
           <FormInput
             tw="mb-5 text-gray-800 font-light"
             id="email"
@@ -176,6 +180,7 @@ export default function AuthForm({
 
           <div tw="mb-5">
             {!forgotPassword && (
+              // Password input
               <FormInput
                 tw="mb-3 text-gray-800 font-light"
                 id="password"
@@ -189,9 +194,10 @@ export default function AuthForm({
               />
             )}
             {!isSigningUp && !forgotPassword && (
+              // Forgot password button
               <ActionButton
                 title={"Forgot password?"}
-                tw="transition-all text-right  underline ml-auto text-gray-800 text-sm opacity-40"
+                tw="transition-all text-right underline ml-auto text-gray-800 text-sm opacity-40"
                 style={{
                   backgroundColor: "transparent",
                   border: "none",
@@ -202,6 +208,7 @@ export default function AuthForm({
               />
             )}
           </div>
+          {/* Submit button */}
           <SubmitButton
             type="submit"
             isLoading={isLoading}
@@ -210,6 +217,7 @@ export default function AuthForm({
         </form>
         <div tw="mt-6 text-center">
           {isSigningUp ? (
+            // Toggle to login form
             <Typography.P tw="text-sm">
               Have an account?{" "}
               <button
@@ -226,15 +234,17 @@ export default function AuthForm({
         </div>
       </div>
 
+      {/* Contacts section */}
       <div
-        tw="p-5 bg-[#fafafa] pr-[4%] "
+        tw="p-5 bg-[#fafafa] pr-[4%]"
         style={{
           display: "block",
         }}
       >
-        <div tw=" pb-2  flex justify-end w-full ">
+        <div tw="pb-2 flex justify-end w-full">
           {!disableClose && (
-            <button tw=" hover:(scale-105)" onClick={onClose}>
+            // Close button
+            <button tw="hover:(scale-105)" onClick={onClose}>
               <CloseCircle />
             </button>
           )}
@@ -245,6 +255,7 @@ export default function AuthForm({
 
         <ul tw="mt-8">
           <li tw="transition-all hover:(opacity-50)">
+            {/* Phone contact */}
             <Link href={"tel:0201231234"}>
               <span tw="flex gap-2 items-center mb-4">
                 <Call />
@@ -254,6 +265,7 @@ export default function AuthForm({
           </li>
 
           <li tw="transition-all hover:(opacity-50)">
+            {/* Email contact */}
             <Link href={"mailto:admin@nanosmoothies.com"}>
               <span tw="flex gap-2 items-center">
                 <Message2 />
