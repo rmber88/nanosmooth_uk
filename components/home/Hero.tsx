@@ -1,15 +1,16 @@
-import tw from "twin.macro";
-import Typography from "../typography";
-import Wrapper from "../layouts/wrapper";
-import { useCallback, useEffect, useRef, useState } from "react";
-import TheFreezeDryingProcess from "../modals/common/TheFreezeDryingProcess";
-import Hls from "hls.js";
+import tw from "twin.macro"; // twin.macro for using Tailwind CSS with styled components
+import Typography from "../typography"; // Typography component for text styles
+import Wrapper from "../layouts/wrapper"; // Wrapper component for layout
+import { useCallback, useEffect, useRef, useState } from "react"; // React hooks
+import TheFreezeDryingProcess from "../modals/common/TheFreezeDryingProcess"; // Modal component for freeze-drying process
+import Hls from "hls.js"; // HLS.js for streaming
 //@ts-ignore
-import Video from "next-video";
-import VideoPlayer from "../videoPlayer";
+import Video from "next-video"; // Next.js video component
+import VideoPlayer from "../videoPlayer"; // Custom video player component
 //@ts-ignore
-import MuxPlayer from "@mux/mux-player-react";
+import MuxPlayer from "@mux/mux-player-react"; // Mux player for video streaming
 
+// URLs for the web and mobile videos
 const webVideo =
   "https://firebasestorage.googleapis.com/v0/b/nanosmoothies-0.appspot.com/o/web%20hero%20video.mp4?alt=media&token=994a5609-7635-4056-8164-9eead5b2dcf6";
 
@@ -17,15 +18,17 @@ const mobileVideo =
   "https://stream.mux.com/taYR01IBDGuHuXZ8YsqL432NN54iskRjsgPZXBFatV68.m3u8";
 
 export default function Hero() {
-  const [isOpen, setisOpen] = useState(false);
+  const [isOpen, setisOpen] = useState(false); // State for modal open/close
 
+  // Toggle modal open/close state
   const toggleModal = useCallback(() => {
     setisOpen((p) => !p);
   }, []);
 
   return (
+    // Main container with responsive height
     <main tw="relative w-full xl:(h-[100vh]) lg:(h-[100vh]) md:(pt-[30px]) hd:(h-[105vh]) 2k:(h-[105vh]) 4k:(h-[85vh])">
-      {/* Web */}
+      {/* Web video section */}
       <div tw="hidden lg:(block h-[50vh] mt-[10%]) h-[100vh]">
         <div tw="absolute top-0 lg:(top-[4vh]) xl:(top-[4vh]) hd:(top-[4vh]) 2k:(top-[0vh]) 4k:(top-[0vh]) z-[-90] 2k:max-w-full 4k:(max-w-[80%]) leading-none">
           <video
@@ -43,6 +46,7 @@ export default function Hero() {
             tw="flex flex-col w-max cursor-pointer"
             onClick={toggleModal}
           >
+            {/* Brand name and clickable text */}
             <span tw="relative font-normal lg:(text-5xl) xl:(text-6xl) hd:(text-5xl) 2k:(text-8xl) 4k:(text-8xl) leading-[0.8]  ">
               <span tw="font-bold">nano</span>
               <span tw="font-normal">smoothies</span>
@@ -61,13 +65,13 @@ export default function Hero() {
         </Wrapper>
       </div>
 
-      {/* Mobile */}
+      {/* Mobile video section */}
       <Wrapper tw="h-[110vh] sm:(h-[100vh]) md:(h-[150vh]) flex items-center gap-5 flex-col lg:(hidden)">
         <article
           tw="relative flex flex-col w-max  transform translate-y-[35px]"
           onClick={toggleModal}
         >
-          <Typography.H1 tw="relative font-normal sm:(text-black-100 text-[40px] font-bold leading-[45px]) md:(text-5xl) ">
+          <Typography.H1 tw="relative font-normal sm:(text-black-100 text-[40px] font-bold leading-[45px]) md:(text-5xl)">
             <span tw="font-bold">nano</span>
             <span tw="font-normal">smoothies</span>
             <span>®</span>
@@ -88,6 +92,7 @@ export default function Hero() {
         </article>
       </Wrapper>
 
+      {/* Modal for the freeze-drying process */}
       <TheFreezeDryingProcess isOpen={isOpen} onClose={toggleModal} />
     </main>
   );
