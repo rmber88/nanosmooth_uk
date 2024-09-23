@@ -1,8 +1,8 @@
+// Import necessary libraries and hooks
 import tw from "twin.macro";
 import FormInput from "../FormInput";
 import useCurrentUserDb from "../../hooks/queries/auth/useCurrentUserDb";
 import { FormEvent, useCallback, useEffect, useState } from "react";
-
 import useForm from "../../hooks/custom/useForm";
 import SubmitButton from "../buttons/SubmitButton";
 import handleError from "../../utils/handleError";
@@ -10,6 +10,7 @@ import toast from "react-hot-toast";
 import { useUpdateUserDb } from "../../hooks/mutations/auth/useUpdateUserDb";
 import { useUserDetailsContext } from "../../context/UserDetailsContext";
 
+// Initial state for form data
 const initialState = {
   name: "",
   street: "",
@@ -20,29 +21,34 @@ const initialState = {
   email: "",
 };
 
+// Define the type for component props
 type ShippingDetailsProps = {
   submitTrigger?: boolean;
   onSubmitSuccess?: () => void;
 };
 
+// Functional component for managing shipping details
 export default function ShippingDetails({
   submitTrigger,
   onSubmitSuccess,
 }: ShippingDetailsProps) {
-  const currentUserDb = useCurrentUserDb();
-  const updateUserDb = useUpdateUserDb();
+  const currentUserDb = useCurrentUserDb(); // Get current user database details
+  const updateUserDb = useUpdateUserDb(); // Hook to update user database details
 
-  const shippingInfo = currentUserDb.data?.shippingAddress;
-  const { formData, updateForm } = useForm({ initialState });
-  const [shippingDetails, setShippingDetails] = useState<any>();
+  const shippingInfo = currentUserDb.data?.shippingAddress; // Shipping information from current user data
+  const { formData, updateForm } = useForm({ initialState }); // Custom hook for form data management
+  const [shippingDetails, setShippingDetails] = useState<any>(); // State for shipping details
 
+  // Context for user details and toggling address check
   const { userDetailsFormState, isChecked, toggleChecked } =
     useUserDetailsContext();
 
-  const noChangesYet = Object.values(formData)?.every((value) => {
-    return value.toString()?.length === 0;
-  });
+  // Check if there are any changes in the form
+  const noChangesYet = Object.values(formData).every(
+    (value) => value.toString().length === 0
+  );
 
+  // Effect to submit form when `submitTrigger` changes
   useEffect(() => {
     if (submitTrigger) {
       const form = document.getElementById("shipping-form");
@@ -52,34 +58,35 @@ export default function ShippingDetails({
     }
   }, [submitTrigger]);
 
+  // Effect to update shipping details when address is toggled
   useEffect(() => {
     if (isChecked) {
       setShippingDetails(userDetailsFormState);
     }
   }, [isChecked, userDetailsFormState, setShippingDetails]);
 
+  // Callback function to handle form submission
   const onSubmit = useCallback(
     (e: FormEvent) => {
-      e.preventDefault();
+      e.preventDefault(); // Prevent default form submission behavior
 
-      if (noChangesYet) {
-        return;
-      }
+      if (noChangesYet) return; // Exit if no form changes
 
+      // Update user database with new billing address
       updateUserDb.mutate(
         { billingAddress: { ...shippingInfo, ...formData } },
         {
-          onError: handleError,
+          onError: handleError, // Handle errors
           onSuccess: () => {
-            currentUserDb.refetch();
-            toast.success("Billing address updated!");
-            onSubmitSuccess?.();
+            currentUserDb.refetch(); // Refetch user data on success
+            toast.success("Billing address updated!"); // Show success message
+            onSubmitSuccess?.(); // Call success callback if provided
           },
         }
       );
     },
     [
-      // noChangesYet,
+      noChangesYet,
       shippingInfo,
       formData,
       updateUserDb,
@@ -96,7 +103,7 @@ export default function ShippingDetails({
     >
       <div tw="flex items-center">
         <span
-          tw="relative w-[3.6rem] h-[2rem] rounded-3xl "
+          tw="relative w-[3.6rem] h-[2rem] rounded-3xl"
           style={{
             backgroundColor: isChecked ? "#5C71A3" : "lightgray",
           }}
@@ -105,11 +112,10 @@ export default function ShippingDetails({
             type="checkbox"
             checked={isChecked}
             onChange={toggleChecked}
-            tw="appearance-none absolute top-0 left-0 h-[100%] w-full cursor-pointer"
+            tw="appearance-none absolute top-0 left-0 h-full w-full cursor-pointer"
           />
-
           <div
-            tw="h-[90%] w-[48%] rounded-full  absolute top-[0.097em] left-0 transition-all duration-200 cursor-pointer"
+            tw="h-[90%] w-[48%] rounded-full absolute top-[0.097em] left-0 transition-all duration-200 cursor-pointer"
             style={{
               transform: isChecked ? "translateX(98%)" : "translateX(6%)",
               backgroundColor: isChecked ? "white" : "#5C71A3",
