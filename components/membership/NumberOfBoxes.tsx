@@ -2,9 +2,8 @@
 import { FormEvent, useCallback, useContext } from "react";
 import tw from "twin.macro"; // Import Twin.macro for styled components
 import ProductCalc from "../home/Description/ProductCalc"; // Import ProductCalc component
-import ButtonGroup from "../buttonGroup"; // Import ButtonGroup component
 import ActionButton from "../buttons/ActionButton"; // Import ActionButton component
-import useUpdateSubscrption from "../../hooks/mutations/subscriptions/useUpdateSubscription"; // Custom hook to update subscription
+import useUpdateSubscription from "../../hooks/mutations/subscriptions/useUpdateSubscription"; // Custom hook to update subscription
 import { PurchaseContext } from "../../context/PurchaseContext"; // Import PurchaseContext
 import { ButtonSpinner } from "../buttons/buttonSpinner"; // Import ButtonSpinner component
 import handleError from "../../utils/handleError"; // Utility function to handle errors
@@ -17,7 +16,7 @@ type Props = {
 
 // Component function for updating the number of boxes in the subscription
 export default function NumberOfBoxes({ onCancel, onSave }: Props) {
-  const updateSubscription = useUpdateSubscrption(); // Hook to update subscription
+  const updateSubscription = useUpdateSubscription(); // Hook to update subscription
   const { totalPrice, totalSachets: quantity } = useContext(PurchaseContext); // Use context to get total price and quantity
 
   // Callback function to handle form submission
