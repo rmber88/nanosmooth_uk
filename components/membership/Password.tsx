@@ -1,3 +1,4 @@
+// Import necessary hooks and utilities
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import tw from "twin.macro";
 import FormInput from "../FormInput";
@@ -7,63 +8,72 @@ import useCurrentUser from "../../hooks/queries/auth/useCurrentUser";
 import handleError from "../../utils/handleError";
 import toast from "react-hot-toast";
 
+// Define the type for the component props
 type PasswordProps = {
   submitTrigger?: boolean;
   onSubmitSuccess?: () => void;
 };
 
+// Functional component to handle password update
 export default function Password({
   submitTrigger,
   onSubmitSuccess,
 }: PasswordProps) {
-  const currentUser = useCurrentUser();
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const currentUser = useCurrentUser(); // Get the current user
+  const [password, setPassword] = useState(""); // State for new password
+  const [confirmPassword, setConfirmPassword] = useState(""); // State for confirming new password
 
+  // Mutation to update the user's password
   const updateUserPassword = useMutation(async (data: { password: string }) => {
     const res = await updatePassword(currentUser!, data.password);
     return res;
   });
 
-    const clearForm = () => {
-      setPassword("");
-      setConfirmPassword("");
-    };
+  // Function to clear the form inputs
+  const clearForm = () => {
+    setPassword("");
+    setConfirmPassword("");
+  };
 
-    const onSubmit = useCallback(
-      (e: FormEvent) => {
-        e.preventDefault();
+  // Callback function for form submission
+  const onSubmit = useCallback(
+    (e: FormEvent) => {
+      e.preventDefault(); // Prevent default form submission
 
-        if (password.length < 6) {
-          toast.error("Password should be at least 6 characters");
-          clearForm();
-          return;
-        }
+      // Check if password meets requirements
+      if (password.length < 6) {
+        toast.error("Password should be at least 6 characters");
+        clearForm();
+        return;
+      }
 
-        if (password !== confirmPassword) {
-          toast.error("Passwords should match");
-          clearForm();
-          return;
-        }
+      // Check if passwords match
+      if (password !== confirmPassword) {
+        toast.error("Passwords should match");
+        clearForm();
+        return;
+      }
 
-        try {
-          updateUserPassword.mutate(
-            { password },
-            {
-              onError: handleError,
-              onSuccess: () => {
-                toast.success("Password updated!");
-                onSubmitSuccess?.();
-              },
-            }
-          );
-        } catch (e: any) {
-          // clearForm();/
-          toast.error(`An error occurred - ${e}`);
-        }
-      },
-      [password, confirmPassword, updateUserPassword, onSubmitSuccess]
-    );
+      // Attempt to update password
+      try {
+        updateUserPassword.mutate(
+          { password },
+          {
+            onError: handleError, // Handle error
+            onSuccess: () => {
+              toast.success("Password updated!");
+              onSubmitSuccess?.(); // Call success callback if provided
+            },
+          }
+        );
+      } catch (e: any) {
+        toast.error(`An error occurred - ${e.message}`);
+      }
+    },
+    [password, confirmPassword, updateUserPassword, onSubmitSuccess]
+  );
+
+  // Effect to trigger form submission programmatically
   useEffect(() => {
     if (submitTrigger) {
       const form = document.getElementById("password-form");
@@ -80,10 +90,8 @@ export default function Password({
         id="password"
         title="New Password"
         type="password"
-        placeholder={"Enter new password"}
-        onChange={(e) => {
-          setPassword(e.target.value);
-        }}
+        placeholder="Enter new password"
+        onChange={(e) => setPassword(e.target.value)}
         required
       />
       <FormInput
@@ -91,10 +99,8 @@ export default function Password({
         id="confirm-password"
         title="Repeat New Password"
         type="password"
-        placeholder={"Re-enter new password"}
-        onChange={(e) => {
-          setConfirmPassword(e.target.value);
-        }}
+        placeholder="Re-enter new password"
+        onChange={(e) => setConfirmPassword(e.target.value)}
         required
       />
     </form>
